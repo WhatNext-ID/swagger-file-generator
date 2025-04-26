@@ -21,6 +21,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { BasicSwaggerSchema } from '@/utils/form/form.helper';
+import { licenses } from '@/utils/license';
 
 interface SetValue {
   form: UseFormReturn<BasicSwaggerSchema>;
@@ -153,13 +154,24 @@ const BasicPartForm: React.FC<SetValue> = ({ form }) => {
               <div className="flex gap-2">
                 <FormField
                   control={form.control}
-                  name={`license.name`}
+                  name="license.name"
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormLabel>OpenAPI License</FormLabel>
                       <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        onValueChange={(jsonValue) => {
+                          const selected = JSON.parse(jsonValue);
+                          field.onChange(selected.name);
+                          form.setValue('license.url', selected.url);
+                        }}
+                        value={
+                          licenses.find((l) => l.name === field.value)
+                            ? JSON.stringify({
+                                name: field.value,
+                                url: form.getValues('license.url'),
+                              })
+                            : undefined
+                        }
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -167,77 +179,18 @@ const BasicPartForm: React.FC<SetValue> = ({ form }) => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="GNU AGPLv3">GNU AGPLv3</SelectItem>
-                          <SelectItem value="GNU GPLv3">GNU GPLv3</SelectItem>
-                          <SelectItem value="GNU LGPLv3">GNU LGPLv3</SelectItem>
-                          <SelectItem value="Mozilla Public License 2.0">
-                            Mozilla Public License 2.0
-                          </SelectItem>
-                          <SelectItem value="Apache License 2.0">
-                            Apache License 2.0
-                          </SelectItem>
-                          <SelectItem value="MIT License">
-                            MIT License
-                          </SelectItem>
-                          <SelectItem value="Boost Software License 1.0">
-                            Boost Software License 1.0
-                          </SelectItem>
-                          <SelectItem value="The Unlicense">
-                            The Unlicense
-                          </SelectItem>
+                          {licenses.map((license) => (
+                            <SelectItem
+                              key={license.name}
+                              value={JSON.stringify(license)}
+                            >
+                              {license.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        Select your copyright type.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={`license.url`}
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>OpenAPI License</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a OpenAPI License URL" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="https://www.gnu.org/licenses/agpl-3.0.txt">
-                            GNU AGPLv3
-                          </SelectItem>
-                          <SelectItem value="https://www.gnu.org/licenses/gpl-3.0-standalone.html">
-                            GNU GPLv3
-                          </SelectItem>
-                          <SelectItem value="https://www.gnu.org/licenses/lgpl-3.0-standalone.html">
-                            GNU LGPLv3
-                          </SelectItem>
-                          <SelectItem value="https://www.mozilla.org/en-US/MPL/2.0/">
-                            Mozilla Public License 2.0
-                          </SelectItem>
-                          <SelectItem value="https://www.apache.org/licenses/LICENSE-2.0">
-                            Apache License 2.0
-                          </SelectItem>
-                          <SelectItem value="https://opensource.org/license/mit">
-                            MIT License
-                          </SelectItem>
-                          <SelectItem value="https://www.boost.org/LICENSE_1_0.txt">
-                            Boost Software License 1.0
-                          </SelectItem>
-                          <SelectItem value="https://unlicense.org/">
-                            The Unlicense
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Select your copyright type.
+                        Selecting a license also sets its URL.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
