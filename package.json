@@ -2,7 +2,7 @@
   "name": "swagger-file-generator",
   "private": true,
   "homepage": "https://whatnext-id.github.io/swagger-file-generator/",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
