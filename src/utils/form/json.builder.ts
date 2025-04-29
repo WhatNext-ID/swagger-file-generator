@@ -81,15 +81,14 @@ const validateExampleProp = (
 };
 
 export const openAPI = (value: CombinedState) => {
-  if (value.swagger !== '2.0') {
-    return oasThreeAbove(value);
-  } else {
-    return oasTwo(value);
-  }
+  const swaggerDataVersion =
+    value.swagger !== '2.0' ? oasThreeAbove(value) : oasTwo(value);
+
+  return swaggerDataVersion;
 };
 
 const oasTwo = (value: CombinedState) => {
-  const paths = value.paths.map((item) => {
+  const paths = value.paths.reduce((acc, item) => {
     const param = item.parameters.map((param) => {
       const exampleData = validateExampleParam(param.type, param.example);
 
@@ -107,33 +106,27 @@ const oasTwo = (value: CombinedState) => {
 
     const body = value.body
       .filter((req) => req.endpoint === item.endpoint)
-      .map((req) => {
-        return {
-          in: 'body',
-          name: 'body',
-          description: 'Add your description here',
-          required: true,
-          schema: {
-            $ref: `#/definitions/${req.ref}`,
-          },
-        };
-      });
+      .map((req) => ({
+        in: 'body',
+        name: 'body',
+        description: 'Add your description here',
+        required: true,
+        schema: {
+          $ref: `#/definitions/${req.ref}`,
+        },
+      }));
 
     const res = value.res
       .filter((res) => res.endpoint === item.endpoint)
-      .map((res) => {
+      .reduce((resAcc, res) => {
         if (res.ref === '') {
-          return {
-            [res.status]: {
-              default: {
-                description: res.description,
-              },
+          resAcc[res.status] = {
+            default: {
+              description: res.description,
             },
           };
-        }
-
-        return {
-          [res.status]: {
+        } else {
+          resAcc[res.status] = {
             description: res.description,
             content: {
               'application/json': {
@@ -147,59 +140,53 @@ const oasTwo = (value: CombinedState) => {
                 },
               },
             },
-          },
-        };
-      });
+          };
+        }
+        return resAcc;
+      }, {} as Record<string, any>);
 
-    const method = item.method.map((http) => {
+    const method = item.method.reduce((methodAcc, http) => {
       if (['put', 'post', 'patch'].includes(http)) {
-        return {
-          [http]: {
-            tags: [item.tags],
-            description: 'Add your description here',
-            parameters: [...param, ...body],
-            responses: { ...res },
-          },
+        methodAcc[http] = {
+          tags: [item.tags],
+          description: 'Add your description here',
+          parameters: [...param, ...body],
+          responses: res,
         };
-      }
-
-      return {
-        [http]: {
+      } else {
+        methodAcc[http] = {
           tags: [item.tags],
           description: 'Add your description here',
           parameters: param,
-        },
-      };
-    });
+          responses: res,
+        };
+      }
+      return methodAcc;
+    }, {} as Record<string, any>);
 
-    return {
-      [item.endpoint]: {
-        ...method,
-      },
-    };
-  });
+    acc[item.endpoint] = method;
 
-  const schema = value.schema.map((item) => {
-    const prop = item.properties.map((prop) => {
+    return acc;
+  }, {} as Record<string, any>);
+
+  const schema = value.schema.reduce((acc, item) => {
+    const prop = item.properties.reduce((propAcc, prop) => {
       const exampleData = validateExampleProp(prop.type, prop.example);
 
-      return {
-        [prop.name]: {
-          type: prop.type,
-          example: exampleData,
-        },
+      propAcc[prop.name] = {
+        type: prop.type,
+        example: exampleData,
       };
-    });
+      return propAcc;
+    }, {} as Record<string, any>);
 
-    return {
-      [item.name]: {
-        type: 'object',
-        properties: {
-          ...prop,
-        },
-      },
+    acc[item.name] = {
+      type: 'object',
+      properties: prop,
     };
-  });
+
+    return acc;
+  }, {} as Record<string, any>);
 
   return {
     swagger: value.swagger,
@@ -219,7 +206,7 @@ const oasTwo = (value: CombinedState) => {
 };
 
 const oasThreeAbove = (value: CombinedState) => {
-  const paths = value.paths.map((item) => {
+  const paths = value.paths.reduce((acc, item) => {
     const param = item.parameters.map((param) => {
       const exampleData = validateExampleParam(param.type, param.example);
 
@@ -237,44 +224,38 @@ const oasThreeAbove = (value: CombinedState) => {
 
     const body = value.body
       .filter((req) => req.endpoint === item.endpoint)
-      .map((req) => {
-        return {
-          description: 'Add your description here',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: `#/components/schemas/${req.ref}`,
-              },
-            },
-            'application/xml': {
-              schema: {
-                $ref: `#/components/schemas/${req.ref}`,
-              },
-            },
-            'application/x-www-form-urlencoded': {
-              schema: {
-                $ref: `#/components/schemas/${req.ref}`,
-              },
+      .map((req) => ({
+        description: 'Add your description here',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: `#/components/schemas/${req.ref}`,
             },
           },
-        };
-      });
+          'application/xml': {
+            schema: {
+              $ref: `#/components/schemas/${req.ref}`,
+            },
+          },
+          'application/x-www-form-urlencoded': {
+            schema: {
+              $ref: `#/components/schemas/${req.ref}`,
+            },
+          },
+        },
+      }));
 
     const res = value.res
       .filter((res) => res.endpoint === item.endpoint)
-      .map((res) => {
+      .reduce((resAcc, res) => {
         if (res.ref === '') {
-          return {
-            [res.status]: {
-              default: {
-                description: res.description,
-              },
+          resAcc[res.status] = {
+            default: {
+              description: res.description,
             },
           };
-        }
-
-        return {
-          [res.status]: {
+        } else {
+          resAcc[res.status] = {
             description: res.description,
             content: {
               'application/json': {
@@ -288,60 +269,56 @@ const oasThreeAbove = (value: CombinedState) => {
                 },
               },
             },
-          },
-        };
-      });
+          };
+        }
+        return resAcc;
+      }, {} as Record<string, any>);
 
-    const method = item.method.map((http) => {
+    const method = item.method.reduce((methodAcc, http) => {
       if (['put', 'post', 'patch'].includes(http)) {
-        return {
-          [http]: {
-            tags: [item.tags],
-            description: 'Add your description here',
-            parameters: param,
-            requestBody: { ...body },
-            responses: { ...res },
-          },
-        };
-      }
-
-      return {
-        [http]: {
+        methodAcc[http] = {
           tags: [item.tags],
           description: 'Add your description here',
           parameters: param,
-        },
-      };
-    });
+          requestBody: body[0], // only one body expected per endpoint
+          responses: res,
+        };
+      } else {
+        methodAcc[http] = {
+          tags: [item.tags],
+          description: 'Add your description here',
+          parameters: param,
+          responses: res,
+        };
+      }
+      return methodAcc;
+    }, {} as Record<string, any>);
+    console.log(method);
 
-    return {
-      [item.endpoint]: {
-        ...method,
-      },
-    };
-  });
+    acc[item.endpoint] = method;
 
-  const schema = value.schema.map((item) => {
-    const prop = item.properties.map((prop) => {
+    return acc;
+  }, {} as Record<string, any>);
+
+  const schema = value.schema.reduce((acc, item) => {
+    const prop = item.properties.reduce((propAcc, prop) => {
       const exampleData = validateExampleProp(prop.type, prop.example);
 
-      return {
-        [prop.name]: {
-          type: prop.type,
-          example: exampleData,
-        },
+      propAcc[prop.name] = {
+        type: prop.type,
+        example: exampleData,
       };
-    });
 
-    return {
-      [item.name]: {
-        type: 'object',
-        properties: {
-          ...prop,
-        },
-      },
+      return propAcc;
+    }, {} as Record<string, any>);
+
+    acc[item.name] = {
+      type: 'object',
+      properties: prop,
     };
-  });
+
+    return acc;
+  }, {} as Record<string, any>);
 
   return {
     openapi: value.swagger,

@@ -192,7 +192,7 @@ const SchemaPartForm: React.FC<SetValue> = ({ form, setSchema }) => {
             </div>
             <div className="flex flex-row mt-3">
               <h5 className="flex-1 font-medium">
-                Endpoint Added: {schemasData.length}
+                Schema Added: {schemasData.length}
               </h5>
               <div className="flex justify-end gap-2">
                 <Button
