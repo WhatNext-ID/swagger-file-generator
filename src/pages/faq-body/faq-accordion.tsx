@@ -14,21 +14,7 @@ const FaqAccordion: React.FC = () => {
           <AccordionTrigger>Is this website free to use?</AccordionTrigger>
           <AccordionContent>
             Yes. It can use free for user to generate and edit the documentation
-            file.
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item-2">
-          <AccordionTrigger>Is it styled?</AccordionTrigger>
-          <AccordionContent>
-            Yes. It comes with default styles that matches the other
-            components&apos; aesthetic.
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item-3">
-          <AccordionTrigger>Is it animated?</AccordionTrigger>
-          <AccordionContent>
-            Yes. It&apos;s animated by default, but you can disable it if you
-            prefer.
+            file inside JSON Section Edit Feature.
           </AccordionContent>
         </AccordionItem>
       </Accordion>
