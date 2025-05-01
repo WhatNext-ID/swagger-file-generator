@@ -6,4 +6,11 @@ export const versioningLog = [
     Using for simple endpoint method and you can edit it live in JSON Swagger Body.
     `,
   },
+  {
+    version: 'v1.1.0',
+    title: 'Repairing Schema Bug And JSON Code Format',
+    description: `Repairing JSON Body Code with remove unused number key when generate JSON, Update Schema Section When Create Some Schema, 
+    and Simplify dropdown about Open API License from 2 dropdown to single dropdown only.
+    `,
+  },
 ];
